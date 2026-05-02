@@ -59,7 +59,7 @@
                 <option value="status">Sort by: Status</option>
             </select>
         </div>
-        <div id="tasl-list" class="task-list">
+        <div id="task-list" class="task-list">
             {% if tasks %}
                 {% for task in tasks %}
                 <div class="task-card {{ 'done' if task.done else '' }}" data-priority="{{ task.priority }}" data-due-date="{{ task.due_date or '' }}" data-done="{{ '1' if task.done else '0' }}">
