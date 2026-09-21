@@ -2,9 +2,6 @@
 
 A full stack productivity app built with Python and Flask, featuring task management, notes, and a calendar view.
 
-## Live Demo
-[Watch the demo](#) ← replace this with your video link once you upload it
-
 ## Features
 - Add, edit, delete and complete tasks
 - Priority levels (low, medium, high)
