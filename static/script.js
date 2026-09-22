@@ -1,21 +1,36 @@
-window.addEventListener('load', () => {
-    const hash = window.location.hash;
-    if (hash === '#notes') {
-        document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.getElementById('section-notes').style.display = 'block';
-        document.querySelector('.tab:nth-child(2)').classList.add('active');
-    }
+/* ── Theme toggle ── */
+document.getElementById('theme').addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem('theme', next); } catch (e) {}
 });
 
-function switchTab(tab) {
+/* ── Segmented tab control ── */
+const thumb = document.querySelector('.tab-thumb');
+
+function moveThumb(el) {
+    thumb.style.width = el.offsetWidth + 'px';
+    thumb.style.transform = `translateX(${el.offsetLeft - 3}px)`;
+}
+
+function switchTab(tab, el) {
     document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.getElementById('section-' + tab).style.display = 'block';
-    event.target.classList.add('active');
+    el.classList.add('active');
+    moveThumb(el);
     if (tab === 'calendar') initCalendar();
 }
 
+window.addEventListener('load', () => {
+    moveThumb(document.querySelector('.tab.active'));
+    if (window.location.hash === '#notes') {
+        switchTab('notes', document.querySelectorAll('.tab')[1]);
+    }
+});
+window.addEventListener('resize', () => moveThumb(document.querySelector('.tab.active')));
+
+/* ── Notes editor ── */
 function openEditor(index, card) {
     const title = card.querySelector('.note-title').textContent;
     const body = card.querySelector('.note-body').textContent;
@@ -32,6 +47,7 @@ function closeEditor() {
     document.getElementById('notes-grid').style.display = 'grid';
 }
 
+/* ── Calendar ── */
 let calendarInitialized = false;
 
 function initCalendar() {
@@ -42,6 +58,7 @@ function initCalendar() {
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         events: '/tasks/json',
+        height: 'auto',
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
@@ -51,12 +68,12 @@ function initCalendar() {
     calendar.render();
 }
 
+/* ── Inline task editing ── */
 function toggleEdit(index) {
-    const form = document.getElementById('edit-form-' + index);
-    form.style.display = form.style.display === 'none' ? 'inline-flex' : 'none';
+    document.getElementById('edit-form-' + index).classList.toggle('open');
 }
 
-// MODAL
+/* ── Confirm modal ── */
 function openModal(message, url) {
     document.getElementById('modal-message').textContent = message;
     document.getElementById('modal-confirm').onclick = () => window.location.href = url;
@@ -67,22 +84,18 @@ function closeModal() {
     document.getElementById('modal-overlay').style.display = 'none';
 }
 
-// SORTING
+/* ── Sorting ── */
 function sortTasks(value) {
     const list = document.getElementById('task-list');
-    const cards = Array.from(list.querySelectorAll('.task-card'));
-    const priorityOrder = { 'high': 0, 'medium': 1, 'low': 2 };
+    const cards = Array.from(list.querySelectorAll('.task'));
+    const priorityOrder = { high: 0, medium: 1, low: 2 };
 
     cards.sort((a, b) => {
         if (value === 'priority') {
-            const pa = a.dataset.priority;
-            const pb = b.dataset.priority;
-            return priorityOrder[pa] - priorityOrder[pb];
+            return priorityOrder[a.dataset.priority] - priorityOrder[b.dataset.priority];
         }
         if (value === 'due_date') {
-            const da = a.dataset.dueDate || '9999';
-            const db = b.dataset.dueDate || '9999';
-            return da.localeCompare(db);
+            return (a.dataset.dueDate || '9999').localeCompare(b.dataset.dueDate || '9999');
         }
         if (value === 'status') {
             return a.dataset.done - b.dataset.done;
